@@ -30,6 +30,9 @@ If you find this plugin useful, please rate it and/or make a donation.
 1. Select a mailing list and you're ready to go!
 1. Please rate the plugin.
 
+== Custom Theme ==
+You can theme this widget. Just copy the file 'views/widget.php' from this plugin ('/wp-content/plugins/mailchimp-widget/') into a directory called 'mailchimp-widget' in your theme. Then change the content to your needs. You can customize the admin panel as well, but you shouldn't need that in normal circumstances.
+
 == Frequently Asked Questions ==
 = I can't activate the plugin because it triggers this error: "Parse error: syntax error, unexpected '{' in .../wp-content/plugins/mailchimp-widget/mailchimp-widget.php on line 40." What's going on? =
 Check your PHP version. You need at least PHP 5.1.2 to use this plugin.

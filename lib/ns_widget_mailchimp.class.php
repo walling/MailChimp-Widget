@@ -81,35 +81,13 @@ class NS_Widget_MailChimp extends WP_Widget {
 
 			extract($vars);
 
-			$form = '<h3>' . __('General Settings', 'mailchimp-widget') . '</h3><p><label>' . __('Title :', 'mailchimp-widget') . '<input class="widefat" id=""' . $this->get_field_id('title') . '" name="' . $this->get_field_name('title') . '" type="text" value="' . $title . '" /></label></p>';
-			
-			$form .= '<p><label>' . __('Select a Mailing List :', 'mailchimp-widget') . '';
-			
-			$form .= '<select class="widefat" id="' . $this->get_field_id('current_mailing_list') . '" name="' . $this->get_field_name('current_mailing_list') . '">';
-			
-			foreach ($this->lists['data'] as $key => $value) {
-				
-				$selected = (isset($current_mailing_list) && $current_mailing_list == $value['id']) ? ' selected="selected" ' : '';
-				
-				$form .= '<option ' . $selected . 'value="' . $value['id'] . '">' . __($value['name'], 'mailchimp-widget') . '</option>';
-				
-			}
-			
-			$form .= '</select></label></p><p><strong>N.B.</strong> ' . __('This is the list your users will be signing up for in your sidebar.', 'mailchimp-widget') . '</p>';
-			
-			$form .= '<p><label>' . __('Sign Up Button Text :', 'mailchimp-widget') . '<input class="widefat" id="' . $this->get_field_id('signup_text') .'" name="' . $this->get_field_name('signup_text') . '" value="' . $signup_text . '" /></label></p>';
-			
-			$form .= '<h3>' . __('Personal Information', 'mailchimp-widget') . '</h3><p>' . __("These fields won't (and shouldn't) be required. Should the widget form collect users' first and last names?", 'mailchimp-widget') . '</p><p><input type="checkbox" class="checkbox" id="' . $this->get_field_id('collect_first') . '" name="' . $this->get_field_name('collect_first') . '" ' . checked($collect_first, true, false) . ' /> <label for="' . $this->get_field_id('collect_first') . '" >' . __('Collect first name.', 'mailchimp-widget') . '</label><br /><input type="checkbox" class="checkbox" id="' . $this->get_field_id('collect_last') . '" name="' . $this->get_field_name('collect_last') . '" ' . checked($collect_last, true, false) . ' /> <label>' . __('Collect last name.', 'mailchimp-widget') . '</label></p>';
-			
-			$form .= '<h3>' . __('Notifications', 'mailchimp-widget') . '</h3><p>' . __('Use these fields to customize what your visitors see after they submit the form', 'mailchimp-widget') . '</p><p><label>' . __('Success :', 'mailchimp-widget') . '<textarea class="widefat" id="' . $this->get_field_id('success_message') . '" name="' . $this->get_field_name('success_message') . '">' . $success_message . '</textarea></label></p><p><label>' . __('Failure :', 'mailchimp-widget') . '<textarea class="widefat" id="' . $this->get_field_id('failure_message') . '" name="' . $this->get_field_name('failure_message') . '">' . $failure_message . '</textarea></label></p>';
-			
+			include($this->get_template_path('widget-admin'));
+
 		} else { //If an API key hasn't been entered, direct the user to set one up.
 			
-			$form = $this->ns_mc_plugin->get_admin_notices();
+			echo $this->ns_mc_plugin->get_admin_notices();
 			
 		}
-		
-		echo $form;
 		
 	}
 	
@@ -272,39 +250,7 @@ class NS_Widget_MailChimp extends WP_Widget {
 			return 0;
 			
 		} else {
-			
-			$widget = $before_widget . $before_title . $instance['title'] . $after_title;
-			
-			if ($this->successful_signup) {
-				
-				$widget .= $this->signup_success_message;
-				
-			} else {
-				
-				$collect_first = '';
-				
-				if ($instance['collect_first']) {
-					
-					$collect_first = '<label>' . __('First Name :', 'mailchimp-widget') . '<input type="text" name="' . $this->id_base . '_first_name" /></label><br />';
-					
-				}
-				
-				$collect_last = '';
-				
-				if ($instance['collect_last']) {
-					
-					$collect_last = '<label>' . __('Last Name :', 'mailchimp-widget') . '<input type="text" name="' . $this->id_base . '_last_name" /></label><br />';
-					
-				}
-			
-				$widget .= '<form action="' . $_SERVER['REQUEST_URI'] . '" id="' . $this->id_base . '_form-' . $this->number . '" method="post">' . $this->subscribe_errors . $collect_first . $collect_last . '<label>' . __('Email Address :', 'mailchimp-widget') . '</label><input type="hidden" name="ns_mc_number" value="' . $this->number . '" /><input type="text" name="' . $this->id_base . '_email" /><input class="button" type="submit" name="' . __($instance['signup_text'], 'mailchimp-widget') . '" value="' . __($instance['signup_text'], 'mailchimp-widget') . '" /></form><script type="text/javascript"> jQuery(\'#' . $this->id_base . '_form-' . $this->number . '\').ns_mc_widget({"url" : "' . $_SERVER['PHP_SELF'] . '", "cookie_id" : "'. $this->id_base . '-' . $this->number . '", "cookie_value" : "' . $this->hash_mailing_list_id() . '", "loader_graphic" : "' . $this->default_loader_graphic . '"}); </script>';
-				
-			}
-
-			$widget .= $after_widget;
-
-			echo $widget;
-			
+			include($this->get_template_path('widget'));
 		}
 		
 	}
@@ -363,6 +309,33 @@ class NS_Widget_MailChimp extends WP_Widget {
 		
 	}
 	
+	/**
+	 * Loads template files in appropriate hierarchy: 1) child theme, 2) parent
+	 * template, 3) this plugin. It will look in the mailchimp-widget/ directory
+	 * in a theme and the views/ directory of this plugin.
+	 *
+	 * @author Bjarke Walling
+	 * @since 0.7.1
+	 *
+	 * @param string $template template file to search for
+	 * @return template path
+	 */
+	function get_template_path($template) {
+		// Add '.php' if it was not added.
+		$template = rtrim($template, '.php') . '.php';
+
+		// Find template in theme hierarchy.
+		$theme_file = locate_template(array('mailchimp-widget/' . $template));
+
+		// If template was found in theme hierarchy use it, otherwise use the
+		// template provided by this plugin.
+		if ($theme_file) {
+			return $theme_file;
+		} else {
+			return plugin_dir_path(__FILE__) . '../views/' . $template;
+		}
+	}
+
 }
 
 ?>
